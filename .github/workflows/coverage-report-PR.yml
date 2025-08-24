@@ -23,22 +23,28 @@ jobs:
       - name: Build (Release)
         run: dotnet build --no-restore --configuration Release
 
-      # Uses the built-in data collector: produces coverage.cobertura.xml under **/TestResults/**/
+      # Produces coverage.cobertura.xml under **/TestResults/**/
       - name: Test with coverage (XPlat Code Coverage)
         run: dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage"
+
+      # Optional: show where the coverage file(s) are
+      - name: Debug - list coverage files
+        run: |
+          echo "Searching for coverage.cobertura.xml..."
+          find . -type f -name "coverage.cobertura.xml" -print
 
       - name: Install ReportGenerator tool
         run: |
           dotnet tool install --global dotnet-reportgenerator-globaltool
           echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
-      # Finds all cobertura files from any test project and generates an HTML site
+      # Generate nice HTML from all Cobertura reports (handle multiple test projects too)
       - name: Generate HTML coverage report
         run: |
           reportgenerator \
-            -reports:**/TestResults/**/coverage.cobertura.xml \
-            -targetdir: CoverageReport \
-            -reporttypes: Html
+            -reports:"**/TestResults/**/coverage.cobertura.xml" \
+            -targetdir:"CoverageReport" \
+            -reporttypes:Html
 
       - name: Upload coverage report artifact
         uses: actions/upload-artifact@v4
