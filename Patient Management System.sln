@@ -7,6 +7,19 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PatientManagement.API", "Pa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PatientManagement.Tests", "PatientManagement.Tests\PatientManagement.Tests.csproj", "{BD1D4849-C863-43EB-8846-B0699BB4BE16}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		Documentation\Sitecore IA.docx = Documentation\Sitecore IA.docx
+		Documentation\SQL_Optimization_ExecutionPlan.docx = Documentation\SQL_Optimization_ExecutionPlan.docx
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DB Scripts", "DB Scripts", "{635E891A-959B-4EAA-B5B2-377BFEF83CB8}"
+	ProjectSection(SolutionItems) = preProject
+		Documentation\DB Scripts\DB Schema Initial.sql = Documentation\DB Scripts\DB Schema Initial.sql
+		Documentation\DB Scripts\ReportingQueries.sql = Documentation\DB Scripts\ReportingQueries.sql
+		Documentation\DB Scripts\SQL_Optimization_AddIndex.sql = Documentation\DB Scripts\SQL_Optimization_AddIndex.sql
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,6 +57,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{635E891A-959B-4EAA-B5B2-377BFEF83CB8} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {642CF874-FDC1-442C-B149-289379B23850}
