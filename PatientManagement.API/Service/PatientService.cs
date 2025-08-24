@@ -47,7 +47,7 @@ public class PatientService : IPatientService
     {
 
         // Ensure email and phone uniqueness (excluding self)
-        var existing = await _patientRepo.SearchPatientsAsync(null, null, null, null, null);
+        var existing = await _patientRepo.SearchPatientsAsync(null, null, null, null, null) ?? new List<Patient>();
         if (existing.Any(x => x.Email.Equals(patient.Email, StringComparison.OrdinalIgnoreCase) && x.Id != patient.Id))
             throw new ArgumentException("Email already exists.");
         if (existing.Any(x => x.Phone.Equals(patient.Phone) && x.Id != patient.Id))
