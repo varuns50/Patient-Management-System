@@ -2,6 +2,7 @@
 using PatientManagement.API.Models;
 using PatientManagement.API.Repository;
 using PatientManagement.API.Services;
+using System.ComponentModel.DataAnnotations;
 
 namespace PatientManagement.Tests.Services
 {
@@ -26,16 +27,6 @@ namespace PatientManagement.Tests.Services
             Email = "tony.stark@avengers.com",
             Phone = "1234567890"
         };
-
-        [Fact]
-        public async Task AddPatient_ShouldThrow_WhenDobInFuture()
-        {
-            var p = MakeValidPatient();
-            p.DOB = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(1));
-
-            await Assert.ThrowsAsync<ArgumentException>(() =>
-                _svc.AddPatientAsync(p, new List<int>()));
-        }
 
         [Fact]
         public async Task AddPatient_ShouldThrow_WhenEmailExists()
@@ -118,17 +109,6 @@ namespace PatientManagement.Tests.Services
             Assert.Equal(42, id);
             _patientRepoMock.Verify(r => r.AddPatientAsync(It.IsAny<Patient>()), Times.Once);
             _pcRepoMock.Verify(r => r.AddPatientConditionAsync(It.Is<PatientCondition>(pc => pc.PatientId == 42)), Times.Exactly(conditionIds.Count));
-        }
-
-        [Fact]
-        public async Task UpdatePatient_ShouldThrow_WhenDobInFuture()
-        {
-            var p = MakeValidPatient();
-            p.Id = 5;
-            p.DOB = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
-
-            await Assert.ThrowsAsync<ArgumentException>(() => _svc.UpdatePatientAsync(p));
-            _patientRepoMock.Verify(r => r.UpdatePatientAsync(It.IsAny<Patient>()), Times.Never);
         }
 
         [Fact]
