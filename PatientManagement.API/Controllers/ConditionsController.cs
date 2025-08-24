@@ -1,11 +1,13 @@
 ﻿using PatientManagement.API.Models;
 using PatientManagement.API.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace PatientManagement.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class ConditionsController : ControllerBase
 {
     private readonly IConditionService _conditionService;
