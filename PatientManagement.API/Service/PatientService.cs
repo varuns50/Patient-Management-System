@@ -16,7 +16,6 @@ public class PatientService : IPatientService
 
     public async Task<int> AddPatientAsync(Patient patient, List<int>? conditionIds = null)
     {
-
         // Ensure email and phone uniqueness
         var existing = await _patientRepo.SearchPatientsAsync(null, null, null, null, null);
         if (existing.Any(x => x.Email.Equals(patient.Email, StringComparison.OrdinalIgnoreCase)))
