@@ -16,11 +16,8 @@ public class PatientService : IPatientService
 
     public async Task<int> AddPatientAsync(Patient patient, List<int>? conditionIds = null)
     {
-        // Business Rule: DOB cannot be in future
-        if (patient.DOB > DateOnly.FromDateTime(DateTime.UtcNow))
-            throw new ArgumentException("DOB cannot be in the future.");
 
-        // Business Rule: Ensure email and phone uniqueness
+        // Ensure email and phone uniqueness
         var existing = await _patientRepo.SearchPatientsAsync(null, null, null, null, null);
         if (existing.Any(x => x.Email.Equals(patient.Email, StringComparison.OrdinalIgnoreCase)))
             throw new ArgumentException("Email already exists.");
@@ -48,10 +45,8 @@ public class PatientService : IPatientService
 
     public async Task<bool> UpdatePatientAsync(Patient patient)
     {
-        if (patient.DOB > DateOnly.FromDateTime(DateTime.UtcNow))
-            throw new ArgumentException("DOB cannot be in the future.");
 
-        // Business Rule: Ensure email and phone uniqueness (excluding self)
+        // Ensure email and phone uniqueness (excluding self)
         var existing = await _patientRepo.SearchPatientsAsync(null, null, null, null, null);
         if (existing.Any(x => x.Email.Equals(patient.Email, StringComparison.OrdinalIgnoreCase) && x.Id != patient.Id))
             throw new ArgumentException("Email already exists.");

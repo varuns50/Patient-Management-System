@@ -12,7 +12,7 @@ namespace PatientManagement.API.Models
         [Required, StringLength(100)]
         public required string LastName { get; set; }
 
-        [Required]
+        [Required, NotInFuture(ErrorMessage = "DOB cannot be in the future.")]
         public DateOnly DOB { get; set; }
 
         [StringLength(10)]
