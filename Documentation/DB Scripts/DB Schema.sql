@@ -1,6 +1,6 @@
 USE [master]
 GO
-/****** Object:  Database [PatientDB]    Script Date: 23-08-2025 12:41:26 ******/
+/****** Object:  Database [PatientDB]    Script Date: 25-08-2025 13:37:20 ******/
 CREATE DATABASE [PatientDB]
  CONTAINMENT = NONE
  ON  PRIMARY 
@@ -82,7 +82,19 @@ ALTER DATABASE [PatientDB] SET QUERY_STORE = OFF
 GO
 USE [PatientDB]
 GO
-/****** Object:  Table [dbo].[Conditions]    Script Date: 23-08-2025 12:41:26 ******/
+/****** Object:  UserDefinedFunction [dbo].[fn_GetAge]    Script Date: 25-08-2025 13:37:20 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   FUNCTION [dbo].[fn_GetAge](@DOB DATE)
+RETURNS INT
+AS
+BEGIN
+    RETURN DATEDIFF(YEAR, @DOB, GETDATE());
+END
+GO
+/****** Object:  Table [dbo].[Conditions]    Script Date: 25-08-2025 13:37:20 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -97,7 +109,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[PatientConditions]    Script Date: 23-08-2025 12:41:26 ******/
+/****** Object:  Table [dbo].[PatientConditions]    Script Date: 25-08-2025 13:37:20 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -113,7 +125,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Patients]    Script Date: 23-08-2025 12:41:26 ******/
+/****** Object:  Table [dbo].[Patients]    Script Date: 25-08-2025 13:37:20 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -143,13 +155,13 @@ UNIQUE NONCLUSTERED
 GO
 SET ANSI_PADDING ON
 GO
-/****** Object:  Index [IX_Conditions_Name]    Script Date: 23-08-2025 12:41:26 ******/
+/****** Object:  Index [IX_Conditions_Name]    Script Date: 25-08-2025 13:37:20 ******/
 CREATE UNIQUE NONCLUSTERED INDEX [IX_Conditions_Name] ON [dbo].[Conditions]
 (
 	[Name] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 GO
-/****** Object:  Index [IX_PatientConditions_ConditionId]    Script Date: 23-08-2025 12:41:26 ******/
+/****** Object:  Index [IX_PatientConditions_ConditionId]    Script Date: 25-08-2025 13:37:20 ******/
 CREATE NONCLUSTERED INDEX [IX_PatientConditions_ConditionId] ON [dbo].[PatientConditions]
 (
 	[ConditionId] ASC,
@@ -158,7 +170,7 @@ CREATE NONCLUSTERED INDEX [IX_PatientConditions_ConditionId] ON [dbo].[PatientCo
 GO
 SET ANSI_PADDING ON
 GO
-/****** Object:  Index [IX_Patients_City_Gender_DOB]    Script Date: 23-08-2025 12:41:26 ******/
+/****** Object:  Index [IX_Patients_City_Gender_DOB]    Script Date: 25-08-2025 13:37:20 ******/
 CREATE NONCLUSTERED INDEX [IX_Patients_City_Gender_DOB] ON [dbo].[Patients]
 (
 	[City] ASC,
@@ -181,6 +193,185 @@ GO
 ALTER TABLE [dbo].[PatientConditions] CHECK CONSTRAINT [FK_PatientConditions_Patients]
 GO
 ALTER TABLE [dbo].[Patients]  WITH CHECK ADD CHECK  (([Gender]='Other' OR [Gender]='Female' OR [Gender]='Male'))
+GO
+/****** Object:  StoredProcedure [dbo].[sp_AddCondition]    Script Date: 25-08-2025 13:37:20 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[sp_AddCondition]
+    @Name NVARCHAR(100),
+    @Description NVARCHAR(255) = NULL
+AS
+BEGIN
+    INSERT INTO Conditions (Name, Description)
+    OUTPUT INSERTED.Id
+    VALUES (@Name, @Description);
+END
+GO
+/****** Object:  StoredProcedure [dbo].[sp_AddPatient]    Script Date: 25-08-2025 13:37:20 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- Insert Patient
+CREATE   PROCEDURE [dbo].[sp_AddPatient]
+    @FirstName NVARCHAR(100),
+    @LastName NVARCHAR(100),
+    @DOB DATE,
+    @Gender NVARCHAR(10) = NULL,
+    @City NVARCHAR(100) = NULL,
+    @Email NVARCHAR(255),
+    @Phone NVARCHAR(20)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    INSERT INTO Patients (FirstName, LastName, DOB, Gender, City, Email, Phone)
+    OUTPUT INSERTED.Id
+    VALUES (@FirstName, @LastName, @DOB, @Gender, @City, @Email, @Phone);
+END
+GO
+/****** Object:  StoredProcedure [dbo].[sp_AddPatientCondition]    Script Date: 25-08-2025 13:37:20 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE   PROCEDURE [dbo].[sp_AddPatientCondition]
+    @PatientId     INT,
+    @ConditionId   INT,
+    @DiagnosedDate DATE = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF @DiagnosedDate IS NULL
+        SET @DiagnosedDate = CAST(GETDATE() AS DATE);
+
+    -- Prevent duplicates (aligned with PK on (PatientId, ConditionId))
+    IF NOT EXISTS (
+        SELECT 1
+        FROM dbo.PatientConditions WITH (UPDLOCK, HOLDLOCK)
+        WHERE PatientId = @PatientId
+          AND ConditionId = @ConditionId
+    )
+    BEGIN
+        INSERT INTO dbo.PatientConditions (PatientId, ConditionId, DiagnosedDate)
+        VALUES (@PatientId, @ConditionId, @DiagnosedDate);
+        -- rows affected = 1
+    END
+    -- else: rows affected = 0 (no-op)
+END
+GO
+/****** Object:  StoredProcedure [dbo].[sp_DeletePatient]    Script Date: 25-08-2025 13:37:20 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- Delete Patient
+CREATE   PROCEDURE [dbo].[sp_DeletePatient]
+    @Id INT
+AS
+BEGIN
+    DELETE FROM Patients WHERE Id = @Id;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[sp_GetAllConditions]    Script Date: 25-08-2025 13:37:20 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE   PROCEDURE [dbo].[sp_GetAllConditions]
+AS
+BEGIN
+    SELECT Id, Name, Description FROM Conditions;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[sp_GetConditionById]    Script Date: 25-08-2025 13:37:20 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE   PROCEDURE [dbo].[sp_GetConditionById]
+    @Id INT
+AS
+BEGIN
+    SELECT Id, Name, Description FROM Conditions WHERE Id = @Id;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[sp_GetPatientById]    Script Date: 25-08-2025 13:37:20 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- Get Patient by Id
+CREATE   PROCEDURE [dbo].[sp_GetPatientById]
+    @Id INT
+AS
+BEGIN
+    SELECT Id, FirstName, LastName, DOB, Gender, City, Email, Phone
+    FROM Patients
+    WHERE Id = @Id;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[sp_SearchPatients]    Script Date: 25-08-2025 13:37:20 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[sp_SearchPatients]
+    @City NVARCHAR(100) = NULL,
+    @Gender NVARCHAR(10) = NULL,
+    @MinAge INT = NULL,
+    @MaxAge INT = NULL,
+    @ConditionId INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT DISTINCT p.Id, p.FirstName, p.LastName, p.DOB, p.Gender, p.City, p.Email, p.Phone
+    FROM Patients p
+    LEFT JOIN PatientConditions pc ON pc.PatientId = p.Id
+    WHERE (@City IS NULL OR p.City = @City)
+      AND (@Gender IS NULL OR p.Gender = @Gender)
+      AND (@MinAge IS NULL OR dbo.fn_GetAge(p.DOB) >= @MinAge)
+      AND (@MaxAge IS NULL OR dbo.fn_GetAge(p.DOB) <= @MaxAge)
+      AND (@ConditionId IS NULL OR pc.ConditionId = @ConditionId);
+END
+GO
+/****** Object:  StoredProcedure [dbo].[sp_UpdatePatient]    Script Date: 25-08-2025 13:37:20 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- Update Patient
+CREATE   PROCEDURE [dbo].[sp_UpdatePatient]
+    @Id INT,
+    @FirstName NVARCHAR(100),
+    @LastName NVARCHAR(100),
+    @DOB DATE,
+    @Gender NVARCHAR(10) = NULL,
+    @City NVARCHAR(100) = NULL,
+    @Email NVARCHAR(255),
+    @Phone NVARCHAR(20)
+AS
+BEGIN
+    UPDATE Patients
+    SET FirstName = @FirstName,
+        LastName = @LastName,
+        DOB = @DOB,
+        Gender = @Gender,
+        City = @City,
+        Email = @Email,
+        Phone = @Phone
+    WHERE Id = @Id;
+END
 GO
 USE [master]
 GO

@@ -15,8 +15,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentat
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DB Scripts", "DB Scripts", "{635E891A-959B-4EAA-B5B2-377BFEF83CB8}"
 	ProjectSection(SolutionItems) = preProject
-		Documentation\DB Scripts\DB Schema Initial.sql = Documentation\DB Scripts\DB Schema Initial.sql
 		Documentation\DB Scripts\ReportingQueries.sql = Documentation\DB Scripts\ReportingQueries.sql
+		Documentation\DB Scripts\DB Schema.sql = Documentation\DB Scripts\DB Schema.sql
 		Documentation\DB Scripts\SQL_Optimization_AddIndex.sql = Documentation\DB Scripts\SQL_Optimization_AddIndex.sql
 	EndProjectSection
 EndProject
